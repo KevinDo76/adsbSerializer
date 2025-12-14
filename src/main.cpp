@@ -149,30 +149,30 @@ int main(int, char**)
 
     std::ofstream outputFile(filePath, std::ios::binary);
     
-    //start_network(outputFile);
+    start_network(outputFile);
 
-    std::vector<std::string> fields;
-    std::stringstream ss("MSG,6,1,1,AAF410,1,2025/12/14,19:05:35.111,2025/12/14,19:05:35.156,,,,,,,,0340,0,0,0,");
-    std::string field;
-
-    while (std::getline(ss, field, ',')) {
-        fields.push_back(field);
-    }
-
-    std::vector<uint8_t> bytes;
-    serializeLine(fields, bytes);
-    uint32_t i=0;
-    bool isSame = (deserializeLine(bytes, i) == "MSG,6,1,1,AAF410,1,2025/12/14,19:05:35.111,2025/12/14,19:05:35.156,,,,,,,,0340,0,0,0,");
-    if (!isSame)
-    {
-        i = 0;
-        std::cout<<"MSG,6,1,1,AAF410,1,2025/12/14,19:05:35.111,2025/12/14,19:05:35.156,,,,,,,,0340,0,0,0,"<<"\n";
-        std::cout<<deserializeLine(bytes, i)<< " " << fields.size()<<"\n";
-    } 
-    else 
-    {
-        std::cout<<"Okay!\n";
-    }
-
-    return 0;
+    //std::vector<std::string> fields;
+    //std::stringstream ss("MSG,6,1,1,AAF410,1,2025/12/14,19:05:35.111,2025/12/14,19:05:35.156,,,,,,,,0340,0,0,0,");
+    //std::string field;
+//
+    //while (std::getline(ss, field, ',')) {
+    //    fields.push_back(field);
+    //}
+//
+    //std::vector<uint8_t> bytes;
+    //serializeLine(fields, bytes);
+    //uint32_t i=0;
+    //bool isSame = (deserializeLine(bytes, i) == "MSG,6,1,1,AAF410,1,2025/12/14,19:05:35.111,2025/12/14,19:05:35.156,,,,,,,,0340,0,0,0,");
+    //if (!isSame)
+    //{
+    //    i = 0;
+    //    std::cout<<"MSG,6,1,1,AAF410,1,2025/12/14,19:05:35.111,2025/12/14,19:05:35.156,,,,,,,,0340,0,0,0,"<<"\n";
+    //    std::cout<<deserializeLine(bytes, i)<< " " << fields.size()<<"\n";
+    //} 
+    //else 
+    //{
+    //    std::cout<<"Okay!\n";
+    //}
+//
+    //return 0;
 }
