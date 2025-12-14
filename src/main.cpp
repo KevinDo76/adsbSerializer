@@ -119,7 +119,7 @@ int start_network(std::ofstream& outputFile)
                 outputFile.flush();
 
                 writtenBytesCount+=bytes.size();
-                if(writtenBytesCount>=300)
+                if(writtenBytesCount>=128000000)
                 {
                    outputFile.close();
                    std::string filePath = findFileName();
