@@ -5,6 +5,7 @@
 #include <fstream>
 #include "serializeSBS.h"
 #include <filesystem>
+#include <chrono>
 
 #define SERVER_IP "10.182.69.106"
 #define SERVER_PORT 30003
@@ -19,9 +20,34 @@ void rtrim(std::string &s) {
     }
 }
 
+std::string findFileName()
+{
+    std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+    std::time_t t = std::chrono::system_clock::to_time_t(now);
+    std::tm tm = *std::localtime(&t); 
+    char dateBuff[80];
+    std::strftime(dateBuff, sizeof(dateBuff), "%Y-%m-%d", &tm); // Format: YYYY-MM-DD
+    std::string date_str(dateBuff);
 
+    std::string filePath;
+    int fileIndex = 0;
+    while (true)
+    {
+        std::stringstream pathStream;
+        pathStream<<"data"<<date_str<<"(";
+        pathStream<<fileIndex<<").binary";
+        std::filesystem::path path(pathStream.str());
+        if (!std::filesystem::exists(path))
+        {
+            filePath = pathStream.str();
+            break;
+        }
+        fileIndex ++;
+    }
+    return filePath;
+}
 
-int start_network(std::ofstream& outputFile, std::vector<uint8_t>& data)
+int start_network(std::ofstream& outputFile)
 {
     int sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock < 0) { perror("socket"); return 1; }
@@ -46,6 +72,7 @@ int start_network(std::ofstream& outputFile, std::vector<uint8_t>& data)
     char temp[50];
 
     int lineCount = 0;
+    int writtenBytesCount = 0;
     while (true)
     {
         ssize_t bytes = recv(sock, temp, sizeof(temp) - 1, 0);
@@ -84,13 +111,23 @@ int start_network(std::ofstream& outputFile, std::vector<uint8_t>& data)
 
                 std::vector<uint8_t> bytes;
                 serializeLine(fields, bytes);
-                serializeLine(fields, data);
                 uint32_t index = 0;
 
                 std::string result = deserializeLine(bytes, index);
                 bool isSame = (result == line );
                 outputFile.write((char*)bytes.data(), bytes.size());
                 outputFile.flush();
+
+                writtenBytesCount+=bytes.size();
+                if(writtenBytesCount>=300)
+                {
+                   outputFile.close();
+                   std::string filePath = findFileName();
+                   outputFile = std::ofstream(filePath, std::ios::binary);
+                   writtenBytesCount = 0;
+                   std::cout<<"New File "<<filePath;
+                }
+
                 std::cout<<line<<"\n";
                 if (!isSame)
                 {
@@ -105,54 +142,33 @@ int start_network(std::ofstream& outputFile, std::vector<uint8_t>& data)
     return 0;
 }
 
-int main(int, char**){
-
-    std::string filePath;
-    int fileIndex = 0;
-    while (true)
-    {
-        std::stringstream pathStream;
-        pathStream<<"data(";
-        pathStream<<fileIndex<<").binary";
-        std::filesystem::path path(pathStream.str());
-        if (!std::filesystem::exists(path))
-        {
-            filePath = pathStream.str();
-            break;
-        }
-        fileIndex ++;
-    }
-
+int main(int, char**)
+{
+    std::string filePath = findFileName();
     std::cout<<filePath<<"\n";
 
     std::ofstream outputFile(filePath, std::ios::binary);
-    std::ifstream inputFile("data(0).binary", std::ios::binary);
     
-    //std::fstream inputFile("data2.binary", "r");
-    std::vector<uint8_t> data((std::istreambuf_iterator<char>(inputFile)),
-                           std::istreambuf_iterator<char>());    
+    start_network(outputFile);
 
-    start_network(outputFile, data);
-    readwholeFile(data);
-
-    std::vector<std::string> fields;
-    std::stringstream ss("MSG,4,1,1,A466D2,1,2025/11/27,00:56:54.566,2025/11/27,00:56:54.607,,,370,275,,,0,,,,,0");
-    std::string field;
-
-    while (std::getline(ss, field, ',')) {
-        fields.push_back(field);
-    }
-
-    std::vector<uint8_t> bytes;
-    serializeLine(fields, bytes);
-    uint32_t i=0;
-    bool isSame = (deserializeLine(bytes, i) == "MSG,4,1,1,A466D2,1,2025/11/27,00:56:54.566,2025/11/27,00:56:54.607,,,370,275,,,0,,,,,0");
-    if (!isSame)
-    {
-        i = 0;
-        std::cout<<"MSG,4,1,1,A466D2,1,2025/11/27,00:56:54.566,2025/11/27,00:56:54.607,,,370,275,,,0,,,,,0"<<"\n";
-        std::cout<<deserializeLine(bytes, i)<< " " << fields.size()<<"\n";
-    }
-
+    //std::vector<std::string> fields;
+    //std::stringstream ss("MSG,4,1,1,A466D2,1,2025/11/27,00:56:54.566,2025/11/27,00:56:54.607,,,370,275,,,0,,,,,0");
+    //std::string field;
+//
+    //while (std::getline(ss, field, ',')) {
+    //    fields.push_back(field);
+    //}
+//
+    //std::vector<uint8_t> bytes;
+    //serializeLine(fields, bytes);
+    //uint32_t i=0;
+    //bool isSame = (deserializeLine(bytes, i) == "MSG,4,1,1,A466D2,1,2025/11/27,00:56:54.566,2025/11/27,00:56:54.607,,,370,275,,,0,,,,,0");
+    //if (!isSame)
+    //{
+    //    i = 0;
+    //    std::cout<<"MSG,4,1,1,A466D2,1,2025/11/27,00:56:54.566,2025/11/27,00:56:54.607,,,370,275,,,0,,,,,0"<<"\n";
+    //    std::cout<<deserializeLine(bytes, i)<< " " << fields.size()<<"\n";
+    //}
+//
     return 0;
 }
