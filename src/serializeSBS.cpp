@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <cctype>
 #include <iomanip>
+#include <format>
+#include <string>
 #include <exception>
 
 uint64_t getBytes64_t(std::vector<uint8_t>&bytes, int i)
@@ -412,7 +414,7 @@ std::string deserializeLine(std::vector<uint8_t>&bytes, uint32_t& i)
 
     if (keyMap&0x10)
     {
-        line << (uint16_t)getBytes16_t(bytes, i);
+        line << std::format("{:04}",(uint16_t)getBytes16_t(bytes, i));
         i+=2;
     }
     line<<",";
