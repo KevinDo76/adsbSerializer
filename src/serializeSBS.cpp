@@ -340,7 +340,7 @@ std::string deserializeLine(std::vector<uint8_t>&bytes, uint32_t& i)
     ICAO << std::hex << getBytes32_t(bytes, i);
     std::string ICAOUpper = ICAO.str();
     std::transform(ICAOUpper.begin(), ICAOUpper.end(), ICAOUpper.begin(), ::toupper);
-    line << ICAOUpper << ",";
+    line << std::format("{:0>6}", ICAOUpper) << ",";
     i+=4;
     line << getBytes32_t(bytes, i) << ",";
     i+=4;
