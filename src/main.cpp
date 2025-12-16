@@ -47,7 +47,7 @@ std::string findFileName()
     return filePath;
 }
 
-int start_network(std::ofstream& outputFile)
+int start_network(std::ofstream& outputFile, std::fstream& log)
 {
     int sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock < 0) { perror("socket"); return 1; }
@@ -119,7 +119,7 @@ int start_network(std::ofstream& outputFile)
                 outputFile.flush();
 
                 writtenBytesCount+=bytes.size();
-                if(writtenBytesCount>=128000000)
+                if(writtenBytesCount>=1048576)
                 {
                    outputFile.close();
                    std::string filePath = findFileName();
@@ -134,7 +134,11 @@ int start_network(std::ofstream& outputFile)
                     std::cout<<"DECODE FAILURE DETECTED\n";
                     std::cout<<line<<"\n";
                     std::cout<<result<< " " << fields.size()<<"\n";
-                    return -1;
+
+                    log<<"line"<<"\n";
+                    log<<result<< " " << fields.size()<<"\n";
+                    log.flush();
+                    //return -1;
                 }                
             }
         }
@@ -148,8 +152,12 @@ int main(int, char**)
     std::cout<<filePath<<"\n";
 
     std::ofstream outputFile(filePath, std::ios::binary);
+    std::fstream outputLog("log.txt", std::ios::app);
     
-    start_network(outputFile);
+    outputLog<<"Start!";
+    outputLog.flush();
+    
+    start_network(outputFile, outputLog);
 
     std::vector<std::string> fields;
     std::stringstream ss("MSG,7,1,1,000000,1,2025/12/14,21:42:51.051,2025/12/14,21:43:43.670,,,,,,,,,,,,-1");
