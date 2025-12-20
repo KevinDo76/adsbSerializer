@@ -20,15 +20,23 @@ void rtrim(std::string &s) {
     }
 }
 
-std::string findFileName()
+std::string getCurrentDateFormat()
 {
     std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
     std::time_t t = std::chrono::system_clock::to_time_t(now);
     std::tm tm = *std::localtime(&t); 
     char dateBuff[80];
-    std::strftime(dateBuff, sizeof(dateBuff), "%Y-%m-%d", &tm); // Format: YYYY-MM-DD
+    std::strftime(dateBuff, sizeof(dateBuff), "%Y-%m-%d", &tm);
     std::string date_str(dateBuff);
+    return date_str;
+}
 
+std::string currentDate=getCurrentDateFormat();
+
+std::string findFileName()
+{
+    std::string date_str = getCurrentDateFormat();
+    
     std::string filePath;
     int fileIndex = 0;
     while (true)
@@ -78,7 +86,6 @@ int start_network(std::ofstream& outputFile, std::fstream& log)
         ssize_t bytes = recv(sock, temp, sizeof(temp) - 1, 0);
         if (bytes < 0) {
             if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR) {
-                // Timeout: no data received yet, continue looping
                 std::cout<<"Empty pipe\n";
                 continue;
             } else {
@@ -99,8 +106,7 @@ int start_network(std::ofstream& outputFile, std::fstream& log)
             buffer.erase(0, pos + 1);
             rtrim(line);
             if (!line.empty()) {
-                //std::cout << line << std::endl; // raw SBS message
-
+                std::string dateNow = getCurrentDateFormat();
                 std::vector<std::string> fields;
                 std::stringstream ss(line);
                 std::string field;
@@ -119,13 +125,14 @@ int start_network(std::ofstream& outputFile, std::fstream& log)
                 outputFile.flush();
 
                 writtenBytesCount+=bytes.size();
-                if(writtenBytesCount>=1048576)
+                if(writtenBytesCount>=20000000 || currentDate!=dateNow)
                 {
                    outputFile.close();
                    std::string filePath = findFileName();
                    outputFile = std::ofstream(filePath, std::ios::binary);
                    writtenBytesCount = 0;
                    std::cout<<"New File "<<filePath;
+                   currentDate = getCurrentDateFormat();
                 }
 
                 std::cout<<line<<"\n";
@@ -138,7 +145,6 @@ int start_network(std::ofstream& outputFile, std::fstream& log)
                     log<<"line"<<"\n";
                     log<<result<< " " << fields.size()<<"\n";
                     log.flush();
-                    //return -1;
                 }                
             }
         }
