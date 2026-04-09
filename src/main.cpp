@@ -7,6 +7,8 @@
 #include <filesystem>
 #include <chrono>
 
+#define DATE_FORMAT "%Y-%m-%d:%H:%M"
+
 #define SERVER_IP "10.182.69.106"
 #define SERVER_PORT 30003
 
@@ -20,22 +22,22 @@ void rtrim(std::string &s) {
     }
 }
 
-std::string getCurrentDateFormat()
+std::string getCurrentDateFormat(std::string dateF)
 {
     std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
     std::time_t t = std::chrono::system_clock::to_time_t(now);
     std::tm tm = *std::localtime(&t); 
     char dateBuff[80];
-    std::strftime(dateBuff, sizeof(dateBuff), "%Y-%m-%d", &tm);
+    std::strftime(dateBuff, sizeof(dateBuff), dateF.c_str(), &tm);
     std::string date_str(dateBuff);
     return date_str;
 }
 
-std::string currentDate=getCurrentDateFormat();
+std::string currentDate=getCurrentDateFormat("%Y-%m-%d-:%H");
 
 std::string findFileName()
 {
-    std::string date_str = getCurrentDateFormat();
+    std::string date_str = getCurrentDateFormat(DATE_FORMAT);
     
     std::string filePath;
     int fileIndex = 0;
@@ -106,7 +108,7 @@ int start_network(std::ofstream& outputFile, std::fstream& log)
             buffer.erase(0, pos + 1);
             rtrim(line);
             if (!line.empty()) {
-                std::string dateNow = getCurrentDateFormat();
+                std::string dateNow = getCurrentDateFormat("%Y-%m-%d-:%H");
                 std::vector<std::string> fields;
                 std::stringstream ss(line);
                 std::string field;
@@ -132,7 +134,7 @@ int start_network(std::ofstream& outputFile, std::fstream& log)
                    outputFile = std::ofstream(filePath, std::ios::binary);
                    writtenBytesCount = 0;
                    std::cout<<"New File "<<filePath;
-                   currentDate = getCurrentDateFormat();
+                   currentDate = getCurrentDateFormat("%Y-%m-%d-:%H");
                 }
 
                 std::cout<<line<<"\n";
@@ -142,7 +144,7 @@ int start_network(std::ofstream& outputFile, std::fstream& log)
                     std::cout<<line<<"\n";
                     std::cout<<result<< " " << fields.size()<<"\n";
 
-                    log<<"line"<<"\n";
+                    log<<line<<"\n";
                     log<<result<< " " << fields.size()<<"\n";
                     log.flush();
                 }                
@@ -160,7 +162,7 @@ int main(int, char**)
     std::ofstream outputFile(filePath, std::ios::binary);
     std::fstream outputLog("log.txt", std::ios::app);
     
-    outputLog<<"Start!";
+    outputLog<<"Start!\n";
     outputLog.flush();
     
     start_network(outputFile, outputLog);
