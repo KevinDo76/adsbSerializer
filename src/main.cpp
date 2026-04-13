@@ -7,7 +7,7 @@
 #include <filesystem>
 #include <chrono>
 
-#define DATE_FORMAT "%Y-%m-%d:%H:%M"
+#define DATE_FORMAT "%Y-%m-%dT%H:%M"
 
 #define SERVER_IP "10.182.69.106"
 #define SERVER_PORT 30003
